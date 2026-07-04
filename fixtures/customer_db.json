@@ -1,0 +1,27 @@
+{
+  "CUST-001": {
+    "customer_id": "CUST-001",
+    "verified_account": "PL11111111111111111111111111",
+    "status": "active"
+  },
+  "CUST-002": {
+    "customer_id": "CUST-002",
+    "verified_account": "PL22222222222222222222222222",
+    "status": "active"
+  },
+  "CUST-003": {
+    "customer_id": "CUST-003",
+    "verified_account": "PL33333333333333333333333333",
+    "status": "active"
+  },
+  "CUST-004": {
+    "customer_id": "CUST-004",
+    "verified_account": "PL44444444444444444444444444",
+    "status": "active"
+  },
+  "CUST-009": {
+    "customer_id": "CUST-009",
+    "verified_account": "PL55555555555555555555555555",
+    "status": "closed"
+  }
+}
