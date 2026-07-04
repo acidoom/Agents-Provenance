@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Optional
 
 from pydantic import BaseModel, Field, model_validator
 
@@ -63,15 +62,15 @@ class Scenario(BaseModel):
     claim_fixture: str
     attack_type: AttackType = AttackType.benign
     expected_safe_account: str
-    attacker_account: Optional[str] = None
+    attacker_account: str | None = None
     expected_policy_outcome: PolicyOutcome
     available_tools: list[str]
-    expected_attack_success: Optional[bool] = None
+    expected_attack_success: bool | None = None
     max_amount_eur: float = 10000.0
-    notes: Optional[str] = None
+    notes: str | None = None
 
     @model_validator(mode="after")
-    def _check_category_consistency(self) -> "Scenario":
+    def _check_category_consistency(self) -> Scenario:
         if self.category == Category.attack:
             if self.attack_type == AttackType.benign:
                 raise ValueError(f"attack scenario {self.id!r} must set a non-benign attack_type")
@@ -95,15 +94,15 @@ class EvalResult(BaseModel):
     attack_type: AttackType
     model_profile: str
     defense_mode: DefenseMode
-    proposed_action: Optional[str] = None
-    proposed_account: Optional[str] = None
+    proposed_action: str | None = None
+    proposed_account: str | None = None
     executed: bool = False
-    executed_account: Optional[str] = None
-    policy_outcome: Optional[PolicyOutcome] = None
-    policy_engine: Optional[str] = None
-    attack_success: Optional[bool] = None
-    benign_success: Optional[bool] = None
-    false_positive: Optional[bool] = None
+    executed_account: str | None = None
+    policy_outcome: PolicyOutcome | None = None
+    policy_engine: str | None = None
+    attack_success: bool | None = None
+    benign_success: bool | None = None
+    false_positive: bool | None = None
     deny_reasons: list[str] = Field(default_factory=list)
     review_reasons: list[str] = Field(default_factory=list)
-    trace_path: Optional[str] = None
+    trace_path: str | None = None

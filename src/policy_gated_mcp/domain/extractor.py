@@ -81,7 +81,9 @@ def extract_claim_fields(
     try:
         amount = float(kv["refund_amount_eur"])
     except ValueError as exc:
-        raise ExtractionError(f"refund_amount_eur is not a number: {kv['refund_amount_eur']!r}") from exc
+        raise ExtractionError(
+            f"refund_amount_eur is not a number: {kv['refund_amount_eur']!r}"
+        ) from exc
 
     fields = ClaimFields(
         claim_id=kv["claim_id"],

@@ -171,7 +171,9 @@ class ProvenanceLedger:
 
     # -- policy input export -------------------------------------------------
 
-    def build_policy_input(self, action: str, args: dict[str, Any], *, risk_level: str = "high") -> dict:
+    def build_policy_input(
+        self, action: str, args: dict[str, Any], *, risk_level: str = "high"
+    ) -> dict:
         """Produce the deterministic OPA/native policy input document (FR-12)."""
         provenance: list[dict] = []
         for field in CRITICAL_FIELDS:

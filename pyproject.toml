@@ -51,6 +51,9 @@ src = ["src", "tests"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
+# `str, Enum` is the intended idiom here (stable pydantic/JSON serialization); we do
+# not want StrEnum's differing str() semantics.
+ignore = ["UP042"]
 
 [tool.mypy]
 python_version = "3.11"

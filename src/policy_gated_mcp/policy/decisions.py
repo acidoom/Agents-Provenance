@@ -36,7 +36,7 @@ class PolicyDecision(BaseModel):
         policy_id: str = "refund.rego",
         input_hash: str = "",
         engine: str = "",
-    ) -> "PolicyDecision":
+    ) -> PolicyDecision:
         """Derive a decision from a raw Rego document.
 
         Precedence is deny > review > allow > default-deny: any deny reason denies;

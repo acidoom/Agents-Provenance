@@ -34,7 +34,9 @@ def _load_db(path: str) -> dict[str, dict]:
     return json.loads(Path(path).read_text(encoding="utf-8"))
 
 
-def lookup_customer_record(customer_id: str, *, db_path: str | Path | None = None) -> CustomerLookup:
+def lookup_customer_record(
+    customer_id: str, *, db_path: str | Path | None = None
+) -> CustomerLookup:
     """Return the verified record for ``customer_id`` or a safe not-found result."""
     path = str(db_path or _DEFAULT_DB_PATH)
     db = _load_db(path)

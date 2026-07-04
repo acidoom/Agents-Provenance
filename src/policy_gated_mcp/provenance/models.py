@@ -82,7 +82,7 @@ class ProvenanceEntry(BaseModel):
     evidence: str = ""
 
     @model_validator(mode="after")
-    def _ensure_hash(self) -> "ProvenanceEntry":
+    def _ensure_hash(self) -> ProvenanceEntry:
         if not self.value_hash:
             self.value_hash = hash_value(self.value)
         return self
@@ -100,7 +100,7 @@ class ProvenanceEntry(BaseModel):
         trust_level: TrustLevel | None = None,
         confidence: float = 1.0,
         evidence: str = "",
-    ) -> "ProvenanceEntry":
+    ) -> ProvenanceEntry:
         """Record an observation, defaulting trust from the source type."""
         return cls(
             field_path=field_path,
