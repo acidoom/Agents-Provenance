@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Virtual envs (kept OUT of iCloud via UV_PROJECT_ENVIRONMENT; ignore any local ones too)
+.venv/
+venv/
+.uv-envs/
+
+# Env / secrets
+.env
+
+# Local OPA binary (installed via `make install-opa`)
+/bin/opa
+
+# Generated evaluation output (the committed sample lives under reports/weekend_eval/)
+reports/**/results.jsonl
+reports/**/summary.csv
+reports/**/traces/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
