@@ -42,11 +42,15 @@ TRUSTED_SOURCE_TYPES: frozenset[SourceType] = frozenset(
 )
 
 #: Source types that are never sufficient authority for a high-impact critical value.
+#: Must stay in lock-step with the policy engine's UNTRUSTED_SOURCES (see
+#: tests/test_policy_engine.py::test_untrusted_source_sets_match).
 UNTRUSTED_SOURCE_TYPES: frozenset[SourceType] = frozenset(
     {
         SourceType.mcp_tool_metadata,
         SourceType.mcp_tool_output_untrusted,
         SourceType.llm_inference,
+        SourceType.user_request,
+        SourceType.test_fixture,
         SourceType.unknown,
     }
 )
@@ -60,7 +64,7 @@ DEFAULT_TRUST: dict[SourceType, TrustLevel] = {
     SourceType.mcp_tool_output_untrusted: TrustLevel.untrusted,
     SourceType.llm_inference: TrustLevel.untrusted,
     SourceType.human_approval: TrustLevel.trusted,
-    SourceType.test_fixture: TrustLevel.trusted,
+    SourceType.test_fixture: TrustLevel.untrusted,
     SourceType.unknown: TrustLevel.unknown,
 }
 

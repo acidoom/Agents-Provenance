@@ -4,8 +4,9 @@ import pytest
 
 import policy_gated_mcp.policy.opa_engine as opa_engine
 from conftest import POLICY_FIXTURE_OUTCOMES, load_policy_input
-from policy_gated_mcp.policy.engine import NativePolicyEngine, get_policy_engine
+from policy_gated_mcp.policy.engine import UNTRUSTED_SOURCES, NativePolicyEngine, get_policy_engine
 from policy_gated_mcp.policy.opa_engine import OpaError
+from policy_gated_mcp.provenance.models import UNTRUSTED_SOURCE_TYPES
 
 
 @pytest.mark.parametrize("name,expected", POLICY_FIXTURE_OUTCOMES.items())
@@ -37,6 +38,17 @@ def test_native_engine_records_engine_name_and_hash():
     decision = NativePolicyEngine().evaluate(load_policy_input("allow_verified_account"))
     assert decision.engine == "native"
     assert decision.input_hash.startswith("sha256:")
+
+
+def test_untrusted_source_sets_match():
+    # The ledger's untrusted source types and the policy engine's UNTRUSTED_SOURCES must
+    # stay identical so a source can never be untrusted in one layer and unknown in the other.
+    assert {s.value for s in UNTRUSTED_SOURCE_TYPES} == set(UNTRUSTED_SOURCES)
+
+
+def test_test_fixture_account_is_denied():
+    decision = NativePolicyEngine().evaluate(load_policy_input("deny_test_fixture_account"))
+    assert "account_has_untrusted_provenance" in decision.deny_reasons
 
 
 def test_factory_native_is_deterministic():

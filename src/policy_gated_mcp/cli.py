@@ -167,9 +167,17 @@ def report_cmd(
     model: str = typer.Option("fake:vulnerable_agent", "--model"),
 ) -> None:
     """Regenerate the Markdown report from an existing results.jsonl."""
+    results = Path(results)
+    if not results.exists():
+        console.print(
+            f"[red]results file not found:[/red] {results}\n"
+            "results.jsonl is generated, not committed — run `make eval` (or "
+            "`python -m policy_gated_mcp.cli eval`) first."
+        )
+        raise typer.Exit(code=2)
     rows = [
         EvalResult(**json.loads(line))
-        for line in Path(results).read_text(encoding="utf-8").splitlines()
+        for line in results.read_text(encoding="utf-8").splitlines()
         if line.strip()
     ]
     md = generate_report(

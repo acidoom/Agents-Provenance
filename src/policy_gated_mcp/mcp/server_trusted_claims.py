@@ -104,12 +104,13 @@ def make_refund_tool(*, source: str = "refund_action_server") -> Tool:
             amount_eur=amount_eur,
             reason=reason,
         )
+        # The executed record is the system's own post-authorization confirmation; it is
+        # never fed back into the provenance ledger, so it carries the default (untrusted)
+        # tool-output labels rather than asserting a trusted origin.
         return ToolResult(
             tool="create_refund_instruction",
             output=record,
             text=json.dumps(record),
-            source_type=SourceType.test_fixture,
-            trust_level=TrustLevel.trusted,
         )
 
     return Tool(metadata=meta, func=_run)

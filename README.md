@@ -29,11 +29,13 @@ Deterministic harness, `fake:vulnerable_agent`, 26 scenarios × 4 defenses (104 
 | provenance_opa | **0%** | 86% | 14% | 8% | 0.86 |
 | spotlighting + provenance_opa | 0% | 86% | 14% | 8% | 0.86 |
 
-The gate drops attack success from 100% to 0% while keeping benign success at 86%. The 14% false
-positive / 8% review is honest and expected: two benign scenarios contain a genuine disagreement
-between the claim document and the verified customer record, and the gate correctly routes those to
-human review rather than guessing. Prompt-layer spotlighting only reaches 25% ASR because it does
-not blunt description-channel poisoning. See [reports/weekend_eval/eval_summary.md](reports/weekend_eval/eval_summary.md).
+The gate drops attack success from 100% to 0% while keeping benign success at 86%. The false
+positive / review figures come from the **same two** benign scenarios, in which the claim document
+and the verified customer record genuinely disagree on the account; the gate routes them to human
+review rather than guessing. The two percentages use different denominators — FPR is 2/14 (over
+benign scenarios), review rate is 2/26 (over all scenarios). Prompt-layer spotlighting only reaches
+25% ASR because it does not blunt description-channel poisoning. See
+[reports/eval_summary.md](reports/eval_summary.md).
 
 ## Architecture
 
@@ -95,7 +97,7 @@ python -m policy_gated_mcp.cli report --results reports/weekend_eval/results.jso
 
 | | |
 |---|---|
-| **Assets** | Integrity of high-impact tool-call arguments (refund recipient + amount); the agent instruction hierarchy; auditability. |
+| **Assets** | Integrity of the high-impact call's refund recipient (`account_number`); the agent instruction hierarchy; auditability. (Amount is range-limited only — see Limitations.) |
 | **Attacker can influence** | MCP tool descriptions/metadata, tool outputs, retrieved document text, helper "recommendations". |
 | **Attacker cannot** | modify the OPA policy, the verified customer DB, or the trusted extractor code; execute the high-impact tool directly. |
 | **Boundary** | the deterministic provenance/OPA gate — not the LLM prompt. |
@@ -178,8 +180,11 @@ tests/                  unit + integration (OPA tests skip without the binary)
 
 - Metrics come from a deterministic fake-model harness — they demonstrate the control's mechanics,
   not real-model attack rates.
-- The gate authorizes on the refund `account_number`; amount is range-checked, other fields
-  existence-checked. Broader argument coverage is future work.
+- The gate authorizes on the refund `account_number` via provenance. `amount_eur` is only
+  range-checked (not provenance-gated), and `claim_id`/`customer_id` are existence-checked;
+  `reason` is unchecked. So a compromised model could still inflate the amount up to the cap or
+  inject audit metadata while keeping the safe account. Provenance-gating those fields is future
+  work (the mechanism already tags their origin; the policy just doesn't yet enforce it).
 - Provenance is exact-value matching; semantically equivalent values are not unified.
 - Tools are in-process (an MCP-like abstraction), not a real MCP transport.
 - The defense reduces measured risk; it does not "solve" prompt injection.

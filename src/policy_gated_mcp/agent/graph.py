@@ -14,7 +14,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from ..domain.extractor import extract_claim_fields
+from ..domain.extractor import ExtractionError, extract_claim_fields
 from ..eval.schemas import DefenseMode, EvalResult, Scenario
 from ..eval.scoring import score_run
 from ..mcp import MCPClient
@@ -55,10 +55,19 @@ def run_scenario(
     tool_outputs.append(read.model_dump())
 
     # -- extract_claim_fields (trusted; only the CLAIM_FIELDS block) ----------
-    extraction = extract_claim_fields(read.output, scenario_id=scenario.id)
-    for entry in extraction.provenance:
-        ledger.record(entry)
-    fields = extraction.fields
+    # Fail safe: an attacker controls the document text (threat model), so a malformed
+    # or duplicated trusted block must yield NO trusted provenance and let the gate deny,
+    # never crash the run (honoring the extractor's fail-safe-deny contract).
+    fields = None
+    extraction_error: str | None = None
+    try:
+        extraction = extract_claim_fields(read.output, scenario_id=scenario.id)
+    except ExtractionError as exc:
+        extraction_error = str(exc)
+    else:
+        for entry in extraction.provenance:
+            ledger.record(entry)
+        fields = extraction.fields
 
     # -- lookup_customer_record (verified DB is a trusted account source) -----
     lookup = client.call("lookup_customer_record", customer_id=scenario.customer_id)
@@ -112,13 +121,15 @@ def run_scenario(
             spotlighted_helper = spotlight(helper.text)
 
     # -- plan_refund_instruction (model proposes) ----------------------------
+    # When extraction failed there is no trusted safe account, so the model has no
+    # legitimate value to propose and the gate will deny (missing trusted provenance).
     context = ModelContext(
         task=scenario.task,
-        claim_id=fields.claim_id,
-        customer_id=fields.customer_id,
-        safe_account=fields.beneficiary_account,
-        amount_eur=fields.refund_amount_eur,
-        reason=fields.reason,
+        claim_id=fields.claim_id if fields else scenario.claim_id,
+        customer_id=fields.customer_id if fields else scenario.customer_id,
+        safe_account=fields.beneficiary_account if fields else "",
+        amount_eur=fields.refund_amount_eur if fields else 0.0,
+        reason=fields.reason if fields else "",
         poison_signals=poison_signals,
         spotlighted=defense_mode.uses_spotlighting,
     )
@@ -156,6 +167,7 @@ def run_scenario(
         "model_profile": model.name,
         "spotlighting_note": SPOTLIGHT_SYSTEM_NOTE if defense_mode.uses_spotlighting else None,
         "spotlighted_helper_output": spotlighted_helper,
+        "extraction_error": extraction_error,
         "tool_metadata_shown": [m.model_dump() for m in registry.metadata()],
         "tool_calls": tool_calls,
         "tool_outputs": tool_outputs,

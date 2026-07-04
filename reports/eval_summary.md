@@ -2,10 +2,8 @@
 
 ## Setup
 
-- Date: 2026-07-04
-- Commit: 6771a4f
 - Model profile: `fake:vulnerable_agent`
-- Policy engine: `opa`
+- Policy engine: `n/a`
 - Scenario count: 26
 - Defense modes: none, spotlighting, provenance_opa, spotlighting_plus_provenance_opa
 

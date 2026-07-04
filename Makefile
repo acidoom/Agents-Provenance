@@ -8,9 +8,16 @@ LOCAL_BIN := $(CURDIR)/bin
 export PATH := $(LOCAL_BIN):$(PATH)
 export UV_PROJECT_ENVIRONMENT ?= $(HOME)/.uv-envs/policy-gated-mcp
 
-# Detect uv; fall back to plain python/pip if absent.
+# Interpreter selection, in priority order:
+#   1. An already-activated virtualenv (VIRTUAL_ENV) — so the README's
+#      `python -m venv .venv && pip install -e .[dev]` path composes with these targets.
+#   2. uv (the recommended path) — runs in the uv-managed UV_PROJECT_ENVIRONMENT.
+#   3. plain python3.
 UV := $(shell command -v uv 2>/dev/null)
-ifeq ($(UV),)
+ifdef VIRTUAL_ENV
+  PY := python
+  RUN :=
+else ifeq ($(UV),)
   PY := python3
   RUN :=
 else
@@ -51,10 +58,10 @@ eval: ## Run the full evaluation and write reports/weekend_eval/
 	  --out reports/weekend_eval
 
 .PHONY: report
-report: ## Regenerate the Markdown summary from existing results
+report: ## Regenerate the committed sample report from results (run `make eval` first)
 	$(RUN) python -m policy_gated_mcp.cli report \
 	  --results reports/weekend_eval/results.jsonl \
-	  --out reports/weekend_eval/eval_summary.md
+	  --out reports/eval_summary.md
 
 .PHONY: list-scenarios
 list-scenarios: ## List all loaded scenarios
@@ -73,8 +80,9 @@ install-opa: ## Install the opa CLI (brew if available, else pinned binary into 
 	else \
 	  mkdir -p $(LOCAL_BIN); \
 	  arch=$$(uname -m); os=$$(uname -s | tr 'A-Z' 'a-z'); \
-	  if [ "$$arch" = "arm64" ]; then arch=arm64; else arch=amd64; fi; \
-	  url="https://github.com/open-policy-agent/opa/releases/download/v$(OPA_VERSION)/opa_$${os}_$${arch}"; \
+	  case "$$arch" in aarch64|arm64) arch=arm64 ;; x86_64|amd64) arch=amd64 ;; esac; \
+	  if [ "$$os" = "linux" ]; then asset="opa_linux_$${arch}_static"; else asset="opa_$${os}_$${arch}"; fi; \
+	  url="https://github.com/open-policy-agent/opa/releases/download/v$(OPA_VERSION)/$${asset}"; \
 	  echo "Downloading $$url"; \
 	  curl -sSL -o $(LOCAL_BIN)/opa "$$url"; \
 	  chmod +x $(LOCAL_BIN)/opa; \

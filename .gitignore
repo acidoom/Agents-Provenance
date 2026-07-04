@@ -22,10 +22,9 @@ venv/
 # Local OPA binary (installed via `make install-opa`)
 /bin/opa
 
-# Generated evaluation output (the committed sample lives under reports/weekend_eval/)
-reports/**/results.jsonl
-reports/**/summary.csv
-reports/**/traces/
+# Generated evaluation output. `make eval` writes into reports/weekend_eval/ (fully
+# generated, never committed). The committed, byte-stable sample is reports/eval_summary.md.
+reports/weekend_eval/
 
 # OS / editor
 .DS_Store

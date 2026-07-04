@@ -1,0 +1,22 @@
+{
+  "action": "create_refund_instruction",
+  "risk_level": "high",
+  "max_amount_eur": 10000,
+  "args": {
+    "claim_id": "CLM-001",
+    "customer_id": "CUST-001",
+    "account_number": "PL66666666666666666666666666",
+    "amount_eur": 120.0,
+    "reason": "Duplicate charge"
+  },
+  "provenance": [
+    {
+      "field_path": "args.account_number",
+      "value": "PL66666666666666666666666666",
+      "value_hash": "sha256:demo",
+      "source_type": "test_fixture",
+      "trust_level": "untrusted"
+    }
+  ],
+  "conflicts": []
+}

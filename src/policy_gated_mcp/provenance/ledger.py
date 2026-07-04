@@ -90,7 +90,6 @@ class ProvenanceLedger:
         if (
             entry.trust_level == TrustLevel.trusted
             and entry.source_type not in TRUSTED_SOURCE_TYPES
-            and entry.source_type != SourceType.test_fixture
         ):
             raise ValueError(
                 f"invalid provenance: source_type={entry.source_type.value} "

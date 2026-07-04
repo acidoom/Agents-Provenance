@@ -23,8 +23,9 @@ untrusted_sources := {
 	"mcp_tool_metadata",
 	"mcp_tool_output_untrusted",
 	"llm_inference",
-	"unknown",
 	"user_request",
+	"test_fixture",
+	"unknown",
 }
 
 default allow := false

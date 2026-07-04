@@ -17,6 +17,7 @@ POLICY_FIXTURE_OUTCOMES = {
     "deny_llm_inferred_account": PolicyOutcome.deny,
     "deny_missing_provenance": PolicyOutcome.deny,
     "deny_invalid_amount": PolicyOutcome.deny,
+    "deny_test_fixture_account": PolicyOutcome.deny,
     "review_conflict": PolicyOutcome.review,
 }
 

@@ -35,7 +35,7 @@ def generate_report(
     results: list[EvalResult],
     *,
     model_profile: str,
-    commit: str = "(uncommitted)",
+    commit: str = "",
     date: str = "",
     scenario_count: int | None = None,
     policy_engine: str = "",
@@ -51,8 +51,12 @@ def generate_report(
 
     a("# Policy-Gated MCP Evaluation Summary\n")
     a("## Setup\n")
-    a(f"- Date: {date or 'n/a'}")
-    a(f"- Commit: {commit}")
+    # Date/Commit are only emitted when explicitly provided (interactive `eval` runs), so
+    # the committed sample report stays byte-stable and never claims a wrong commit.
+    if date:
+        a(f"- Date: {date}")
+    if commit:
+        a(f"- Commit: {commit}")
     a(f"- Model profile: `{model_profile}`")
     a(f"- Policy engine: `{policy_engine or 'n/a'}`")
     a(f"- Scenario count: {scenario_count if scenario_count is not None else 'n/a'}")

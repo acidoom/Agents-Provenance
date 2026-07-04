@@ -167,8 +167,9 @@ if a safe action is denied without a legitimate reason, or if no action is propo
 
 ## 20. Threat model
 
-**Assets:** integrity of high-impact tool-call arguments; correct refund recipient/amount; agent
-instruction hierarchy; auditability.
+**Assets:** integrity of the high-impact tool call's refund recipient (`account_number`); agent
+instruction hierarchy; auditability. (In v1 the provenance gate enforces the recipient only; the
+amount is range-limited and remaining args existence-checked — see the README Limitations.)
 **Attacker can influence:** MCP tool descriptions, metadata, outputs; retrieved document text;
 helper recommendations.
 **Attacker cannot:** modify the OPA policy, trusted customer DB, or trusted extractor code; directly

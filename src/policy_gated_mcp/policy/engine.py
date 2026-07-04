@@ -22,8 +22,9 @@ UNTRUSTED_SOURCES = {
     "mcp_tool_metadata",
     "mcp_tool_output_untrusted",
     "llm_inference",
-    "unknown",
     "user_request",
+    "test_fixture",
+    "unknown",
 }
 DEFAULT_MAX_AMOUNT = 10000
 
