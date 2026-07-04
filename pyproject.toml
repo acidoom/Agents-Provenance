@@ -30,6 +30,8 @@ dev = [
 openai = ["openai>=1.30"]
 anthropic = ["anthropic>=0.30"]
 ollama = ["ollama>=0.3"]
+# Interactive Streamlit demo (see demo/app.py); not required for tests/eval.
+demo = ["streamlit>=1.35", "pandas>=2.2"]
 
 [project.scripts]
 policy-gated-mcp = "policy_gated_mcp.cli:app"

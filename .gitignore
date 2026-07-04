@@ -26,7 +26,8 @@ venv/
 # generated, never committed). The committed, byte-stable sample is reports/eval_summary.md.
 reports/weekend_eval/
 
-# OS / editor
+# OS / editor / local tooling
 .DS_Store
 .idea/
 .vscode/
+.claude/

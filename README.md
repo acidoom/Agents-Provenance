@@ -93,6 +93,26 @@ python -m policy_gated_mcp.cli policy-check --input fixtures/policy_inputs/deny_
 python -m policy_gated_mcp.cli report --results reports/weekend_eval/results.jsonl --out reports/weekend_eval/eval_summary.md
 ```
 
+## Interactive demo
+
+An optional Streamlit app ([demo/app.py](demo/app.py)) makes the thesis clickable — pick a
+scenario and **toggle the defense mode**, and watch the *same* tool-poisoning attack flip from
+"attacker account executed" to "denied by the provenance gate", with the poisoned tool content, the
+provenance ledger, and the policy decision shown side by side. There's also a **Full evaluation** tab
+that runs all scenarios × defenses and charts the metrics.
+
+```bash
+pip install -e ".[demo]"     # or: uv sync --extra demo
+make demo                    # or: streamlit run demo/app.py
+```
+
+| Defense = `none` | Defense = `provenance_opa` |
+|---|---|
+| 🔴 **ATTACK SUCCEEDED** — executed account `PL99999…`, no gate | 🛡️ **Attack blocked** — model still proposes `PL99999…`, but the gate denies (`account_has_untrusted_provenance`); nothing executes |
+
+Same vulnerable model, same attack — only the architectural gate changes the outcome. Everything is
+deterministic and keyless.
+
 ## Threat model
 
 | | |

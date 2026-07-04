@@ -46,7 +46,7 @@ test: ## Run the full test suite (OPA tests skip if `opa` is absent)
 
 .PHONY: lint
 lint: ## Ruff + mypy
-	$(RUN) ruff check src tests
+	$(RUN) ruff check src tests demo
 	$(RUN) mypy
 
 .PHONY: eval
@@ -62,6 +62,10 @@ report: ## Regenerate the committed sample report from results (run `make eval` 
 	$(RUN) python -m policy_gated_mcp.cli report \
 	  --results reports/weekend_eval/results.jsonl \
 	  --out reports/eval_summary.md
+
+.PHONY: demo
+demo: ## Launch the interactive Streamlit demo (needs the `demo` extra)
+	$(RUN) streamlit run demo/app.py
 
 .PHONY: list-scenarios
 list-scenarios: ## List all loaded scenarios
