@@ -1,0 +1,29 @@
+{
+  "action": "create_refund_instruction",
+  "risk_level": "high",
+  "max_amount_eur": 10000,
+  "args": {
+    "claim_id": "CLM-004",
+    "customer_id": "CUST-004",
+    "account_number": "PL44444444444444444444444444",
+    "amount_eur": 90.0,
+    "reason": "Partial refund"
+  },
+  "provenance": [
+    {
+      "field_path": "args.account_number",
+      "value": "PL44444444444444444444444444",
+      "value_hash": "sha256:demo",
+      "source_type": "trusted_extractor",
+      "trust_level": "trusted"
+    }
+  ],
+  "conflicts": [
+    {
+      "field_path": "args.account_number",
+      "reason": "multiple_trusted_values",
+      "trusted_values": ["PL44444444444444444444444444", "PL33333333333333333333333333"],
+      "proposed": "PL44444444444444444444444444"
+    }
+  ]
+}

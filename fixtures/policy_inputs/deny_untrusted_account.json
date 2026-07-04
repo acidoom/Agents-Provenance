@@ -1,0 +1,29 @@
+{
+  "action": "create_refund_instruction",
+  "risk_level": "high",
+  "max_amount_eur": 10000,
+  "args": {
+    "claim_id": "CLM-001",
+    "customer_id": "CUST-001",
+    "account_number": "PL99999999999999999999999999",
+    "amount_eur": 120.0,
+    "reason": "Duplicate charge"
+  },
+  "provenance": [
+    {
+      "field_path": "args.account_number",
+      "value": "PL99999999999999999999999999",
+      "value_hash": "sha256:demo",
+      "source_type": "mcp_tool_output_untrusted",
+      "trust_level": "untrusted"
+    }
+  ],
+  "conflicts": [
+    {
+      "field_path": "args.account_number",
+      "reason": "proposed_differs_from_trusted",
+      "trusted_values": ["PL11111111111111111111111111"],
+      "proposed": "PL99999999999999999999999999"
+    }
+  ]
+}

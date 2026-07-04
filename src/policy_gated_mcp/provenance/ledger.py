@@ -172,7 +172,12 @@ class ProvenanceLedger:
     # -- policy input export -------------------------------------------------
 
     def build_policy_input(
-        self, action: str, args: dict[str, Any], *, risk_level: str = "high"
+        self,
+        action: str,
+        args: dict[str, Any],
+        *,
+        risk_level: str = "high",
+        max_amount_eur: float = 10000.0,
     ) -> dict:
         """Produce the deterministic OPA/native policy input document (FR-12)."""
         provenance: list[dict] = []
@@ -188,6 +193,7 @@ class ProvenanceLedger:
         return {
             "action": action,
             "risk_level": risk_level,
+            "max_amount_eur": max_amount_eur,
             "args": args,
             "provenance": provenance,
             "conflicts": conflicts,

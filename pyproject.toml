@@ -55,6 +55,10 @@ select = ["E", "F", "I", "UP", "B"]
 # not want StrEnum's differing str() semantics.
 ignore = ["UP042"]
 
+[tool.ruff.lint.per-file-ignores]
+# Typer requires `typer.Option()/Argument()` calls in parameter defaults (B008).
+"src/policy_gated_mcp/cli.py" = ["B008"]
+
 [tool.mypy]
 python_version = "3.11"
 packages = ["policy_gated_mcp"]

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import typer
@@ -9,6 +10,8 @@ from rich.console import Console
 from rich.table import Table
 
 from .eval.loader import load_scenarios
+from .policy.decisions import PolicyOutcome
+from .policy.engine import get_policy_engine
 
 app = typer.Typer(
     help="Policy-Gated MCP — tool-poisoning red-team + provenance/OPA defense",
@@ -52,6 +55,29 @@ def list_scenarios(scenarios: Path = ScenariosOption) -> None:
         )
     console.print(table)
     console.print(f"attack classes covered: {', '.join(classes)}")
+
+
+@app.command("policy-check")
+def policy_check(
+    input: Path = typer.Option(..., "--input", help="Policy input JSON document"),
+    engine: str = typer.Option("auto", "--engine", help="auto | opa | native"),
+) -> None:
+    """Evaluate a single policy input document through the gate and print the decision."""
+    doc = json.loads(Path(input).read_text(encoding="utf-8"))
+    eng = get_policy_engine(prefer=engine)
+    decision = eng.evaluate(doc)
+
+    color = {"allow": "green", "deny": "red", "review": "yellow"}[decision.outcome.value]
+    console.print(
+        f"engine=[bold]{eng.name}[/bold]  "
+        f"outcome=[{color}]{decision.outcome.value}[/{color}]  allow={decision.allow}"
+    )
+    if decision.deny_reasons:
+        console.print(f"  deny_reasons: {', '.join(decision.deny_reasons)}")
+    if decision.review_reasons:
+        console.print(f"  review_reasons: {', '.join(decision.review_reasons)}")
+    console.print(f"  input_hash: {decision.input_hash}")
+    raise typer.Exit(code=1 if decision.outcome == PolicyOutcome.deny else 0)
 
 
 if __name__ == "__main__":
