@@ -60,8 +60,10 @@ def raw_decision(policy_input: dict) -> dict:
     valid_amount = isinstance(amount, (int, float)) and not isinstance(amount, bool)
     valid_amount = valid_amount and amount > 0 and amount <= limit
 
-    args_present = bool(args.get("claim_id")) and bool(args.get("customer_id")) and bool(
-        args.get("account_number")
+    args_present = (
+        bool(args.get("claim_id"))
+        and bool(args.get("customer_id"))
+        and bool(args.get("account_number"))
     )
     has_conflict = len(conflicts) > 0
 

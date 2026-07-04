@@ -69,6 +69,12 @@ class ProvenanceLedger:
         self._observations.append(entry)
         return entry
 
+    def record(self, entry: ProvenanceEntry) -> ProvenanceEntry:
+        """Append a pre-built observation (e.g. from the extractor), with validation."""
+        self._validate_consistency(entry)
+        self._observations.append(entry)
+        return entry
+
     @staticmethod
     def _validate_consistency(entry: ProvenanceEntry) -> None:
         """Reject impossible trust labels — e.g. an untrusted source claiming `trusted`.

@@ -11,12 +11,18 @@ OTHER = "PL22222222222222222222222222"
 def _benign_ledger() -> ProvenanceLedger:
     led = ProvenanceLedger(scenario_id="benign")
     led.observe(
-        field="account_number", value=SAFE, source_type=SourceType.trusted_extractor,
-        source_id="claim:block", created_by="trusted_extractor",
+        field="account_number",
+        value=SAFE,
+        source_type=SourceType.trusted_extractor,
+        source_id="claim:block",
+        created_by="trusted_extractor",
     )
     led.observe(
-        field="account_number", value=SAFE, source_type=SourceType.verified_database,
-        source_id="db:CUST-001", created_by="lookup_customer_record",
+        field="account_number",
+        value=SAFE,
+        source_type=SourceType.verified_database,
+        source_id="db:CUST-001",
+        created_by="lookup_customer_record",
     )
     return led
 
@@ -41,9 +47,11 @@ def test_trusted_value_resolves_to_trusted_provenance():
 def test_untrusted_only_value_resolves_to_untrusted():
     led = _benign_ledger()
     led.observe(
-        field="account_number", value=ATTACKER,
+        field="account_number",
+        value=ATTACKER,
         source_type=SourceType.mcp_tool_output_untrusted,
-        source_id="tool:poisoned_refund_helper", created_by="poisoned_refund_helper",
+        source_id="tool:poisoned_refund_helper",
+        created_by="poisoned_refund_helper",
     )
     entries = led.resolve_argument("account_number", ATTACKER)
     assert len(entries) == 1
@@ -66,10 +74,20 @@ def test_conflict_when_proposed_differs_from_trusted():
 
 def test_conflict_when_two_trusted_sources_disagree():
     led = ProvenanceLedger()
-    led.observe(field="account_number", value=SAFE, source_type=SourceType.trusted_extractor,
-                source_id="claim", created_by="trusted_extractor")
-    led.observe(field="account_number", value=OTHER, source_type=SourceType.verified_database,
-                source_id="db", created_by="lookup_customer_record")
+    led.observe(
+        field="account_number",
+        value=SAFE,
+        source_type=SourceType.trusted_extractor,
+        source_id="claim",
+        created_by="trusted_extractor",
+    )
+    led.observe(
+        field="account_number",
+        value=OTHER,
+        source_type=SourceType.verified_database,
+        source_id="db",
+        created_by="lookup_customer_record",
+    )
     conflicts = led.conflicts_for("account_number", SAFE)
     assert conflicts and conflicts[0]["reason"] == "multiple_trusted_values"
 
@@ -83,9 +101,11 @@ def test_rejects_untrusted_source_labeled_trusted():
     led = ProvenanceLedger()
     with pytest.raises(ValueError, match="cannot have trust_level=trusted"):
         led.observe(
-            field="account_number", value=ATTACKER,
+            field="account_number",
+            value=ATTACKER,
             source_type=SourceType.mcp_tool_output_untrusted,
-            source_id="tool", created_by="attacker",
+            source_id="tool",
+            created_by="attacker",
             trust_level=TrustLevel.trusted,
         )
 
@@ -93,8 +113,11 @@ def test_rejects_untrusted_source_labeled_trusted():
 def test_build_policy_input_benign_shape():
     led = _benign_ledger()
     args = {
-        "claim_id": "CLM-001", "customer_id": "CUST-001",
-        "account_number": SAFE, "amount_eur": 120.0, "reason": "Duplicate charge",
+        "claim_id": "CLM-001",
+        "customer_id": "CUST-001",
+        "account_number": SAFE,
+        "amount_eur": 120.0,
+        "reason": "Duplicate charge",
     }
     doc = led.build_policy_input("create_refund_instruction", args)
     assert doc["action"] == "create_refund_instruction"
@@ -107,13 +130,18 @@ def test_build_policy_input_benign_shape():
 def test_build_policy_input_attack_has_untrusted_and_conflict():
     led = _benign_ledger()
     led.observe(
-        field="account_number", value=ATTACKER,
+        field="account_number",
+        value=ATTACKER,
         source_type=SourceType.mcp_tool_output_untrusted,
-        source_id="tool:poisoned", created_by="poisoned_refund_helper",
+        source_id="tool:poisoned",
+        created_by="poisoned_refund_helper",
     )
     args = {
-        "claim_id": "CLM-001", "customer_id": "CUST-001",
-        "account_number": ATTACKER, "amount_eur": 120.0, "reason": "Duplicate charge",
+        "claim_id": "CLM-001",
+        "customer_id": "CUST-001",
+        "account_number": ATTACKER,
+        "amount_eur": 120.0,
+        "reason": "Duplicate charge",
     }
     doc = led.build_policy_input("create_refund_instruction", args)
     acct = [p for p in doc["provenance"] if p["field_path"] == "args.account_number"]

@@ -67,9 +67,12 @@ def test_vulnerable_follows_everything_without_defense(attack_type):
 
 def test_vulnerable_under_spotlighting_follows_only_description():
     # Description poison (metadata channel) survives spotlighting; data-channel does not.
-    assert _account(
-        FakeProfile.vulnerable_agent, AttackType.tool_description_poisoning, spotlighted=True
-    ) == ATTACKER
+    assert (
+        _account(
+            FakeProfile.vulnerable_agent, AttackType.tool_description_poisoning, spotlighted=True
+        )
+        == ATTACKER
+    )
     for data_attack in (
         AttackType.tool_output_poisoning,
         AttackType.argument_substitution,
