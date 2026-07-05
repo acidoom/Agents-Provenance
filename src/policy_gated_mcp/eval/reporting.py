@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from .schemas import Category, DefenseMode, EvalResult
-from .scoring import aggregate, attack_class_breakdown
+from .scoring import aggregate, attack_class_breakdown, model_comparison
 
 _DEFENSE_ORDER = [
     DefenseMode.none,
@@ -84,6 +84,18 @@ def generate_report(
             f"| {_pct(m['review_rate'])} | {_NOTES.get(d.value, '')} |"
         )
     a("")
+
+    models = sorted({r.model_profile for r in results})
+    if len(models) > 1:
+        a("## Model comparison (ASR by defense)\n")
+        a("| Model | " + " | ".join(d.value for d in present) + " |")
+        a("|---|" + "---:|" * len(present))
+        comp = model_comparison(results)
+        for model in models:
+            row = comp.get(model, {})
+            cells = " | ".join(_pct(row.get(d.value)) for d in present)
+            a(f"| `{model}` | {cells} |")
+        a("")
 
     a("## Attack-class breakdown\n")
     a("| Attack class | No defense ASR | Spotlighting ASR | Provenance/OPA ASR |")

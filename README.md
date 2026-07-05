@@ -89,9 +89,29 @@ python -m policy_gated_mcp.cli list-scenarios
 python -m policy_gated_mcp.cli run --scenario argument_substitution_001 --defense provenance_opa --model fake:vulnerable_agent
 python -m policy_gated_mcp.cli run --scenario argument_substitution_001 --defense none          --model fake:vulnerable_agent
 python -m policy_gated_mcp.cli eval --scenarios scenarios --model fake:vulnerable_agent --defenses all --out reports/weekend_eval
+python -m policy_gated_mcp.cli eval --models fake:vulnerable_agent,anthropic:claude-... --out reports/compare   # compare models
 python -m policy_gated_mcp.cli policy-check --input fixtures/policy_inputs/deny_untrusted_account.json
-python -m policy_gated_mcp.cli report --results reports/weekend_eval/results.jsonl --out reports/weekend_eval/eval_summary.md
+python -m policy_gated_mcp.cli report --results reports/weekend_eval/results.jsonl --out reports/eval_summary.md
 ```
+
+## Real-model evaluation (optional)
+
+The same harness runs **real LLMs** through the same gate: a real model reads the poisoned
+tool description/output and decides, and the harness resolves the provenance of whatever value
+it returns — so the gate is unchanged, which is the point. Adapters for OpenAI, Anthropic, and
+Ollama live behind the [`models/adapters.py`](src/policy_gated_mcp/models/adapters.py) seam and
+are imported lazily, so nothing on the default (keyless) path depends on them.
+
+```bash
+pip install -e ".[anthropic]"        # or .[openai] / .[ollama] (Ollama is local + keyless)
+export ANTHROPIC_API_KEY=...
+python -m policy_gated_mcp.cli eval \
+  --models fake:vulnerable_agent,anthropic:claude-3-5-sonnet-latest --out reports/compare
+```
+
+The report gains a **Model comparison (ASR by defense)** table. Set
+`POLICY_GATED_MCP_MODEL_CACHE=.cache` to cache responses for reproducible, cheap re-runs. The
+keyless default path (`make test` / `make eval`, CI) never touches these adapters.
 
 ## Interactive demo
 
@@ -213,9 +233,10 @@ tests/                  unit + integration (OPA tests skip without the binary)
 
 ## Future work
 
-Real-model adapters (OpenAI/Anthropic/Ollama, still policy-gated); a real `mcp`-SDK server/client
-transport; signed tool manifests / allow-listing; multi-step taint tracking; canary exfiltration
-scenarios; a CI regression benchmark.
+A real `mcp`-SDK server/client transport (attacks over the actual protocol); more attack classes
+(retrieval injection, tool-name confusion, canary exfiltration); signed tool manifests /
+allow-listing; multi-step taint tracking; a CI regression benchmark. (Real-model adapters and
+multi-field gating are now implemented — see above.)
 
 ## License
 

@@ -124,6 +124,9 @@ def run_scenario(
     # -- plan_refund_instruction (model proposes) ----------------------------
     # When extraction failed there is no trusted safe account, so the model has no
     # legitimate value to propose and the gate will deny (missing trusted provenance).
+    customer_record = (
+        lookup.output if (not lookup.error and isinstance(lookup.output, dict)) else None
+    )
     context = ModelContext(
         task=scenario.task,
         claim_id=fields.claim_id if fields else scenario.claim_id,
@@ -133,6 +136,9 @@ def run_scenario(
         reason=fields.reason if fields else "",
         poison_signals=poison_signals,
         spotlighted=defense_mode.uses_spotlighting,
+        tool_metadata=[{"name": m.name, "description": m.description} for m in registry.metadata()],
+        tool_outputs=[{"tool": o.get("tool"), "text": o.get("text")} for o in tool_outputs],
+        customer_record=customer_record,
     )
     request = model.propose(context)
     request.scenario_id = scenario.id

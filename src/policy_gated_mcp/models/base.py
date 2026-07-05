@@ -9,7 +9,7 @@ realistic vulnerability profile.
 from __future__ import annotations
 
 from enum import Enum
-from typing import Protocol, runtime_checkable
+from typing import Any, Protocol, runtime_checkable
 
 from pydantic import BaseModel, Field
 
@@ -41,9 +41,15 @@ class ModelContext(BaseModel):
     safe_account: str
     amount_eur: float
     reason: str
+    #: Pre-digested signals used by the deterministic fake models.
     poison_signals: list[PoisonSignal] = Field(default_factory=list)
     #: True when untrusted data was wrapped in spotlighting delimiters + a warning.
     spotlighted: bool = False
+    #: Raw materials used by REAL model adapters to build a prompt (a real LLM must be
+    #: able to actually be fooled). Fake models ignore these.
+    tool_metadata: list[dict] = Field(default_factory=list)
+    tool_outputs: list[dict] = Field(default_factory=list)
+    customer_record: dict[str, Any] | None = None
 
 
 @runtime_checkable

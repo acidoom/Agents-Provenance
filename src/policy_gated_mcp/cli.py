@@ -11,7 +11,7 @@ from rich.table import Table
 
 from .eval.loader import load_scenarios
 from .eval.reporting import generate_report
-from .eval.runner import run_eval, run_single
+from .eval.runner import run_eval, run_models, run_single
 from .eval.schemas import ALL_DEFENSES, DefenseMode, EvalResult
 from .eval.scoring import aggregate
 from .policy.decisions import PolicyOutcome
@@ -152,13 +152,24 @@ def run_cmd(
 def eval_cmd(
     scenarios: Path = ScenariosOption,
     model: str = typer.Option("fake:vulnerable_agent", "--model"),
+    models: str = typer.Option(
+        "", "--models", help="Comma-separated model specs to compare (overrides --model)"
+    ),
     defenses: str = typer.Option("all", "--defenses", help="'all' or comma-separated modes"),
     out: Path = typer.Option(Path("reports/weekend_eval"), "--out"),
     engine: str = typer.Option("auto", "--engine"),
 ) -> None:
-    """Run the full evaluation suite and write results, CSV, traces, and a report."""
+    """Run the full evaluation suite and write results, CSV, traces, and a report.
+
+    Use --models to compare several models (e.g. fake:vulnerable_agent,anthropic:claude-...);
+    real models need the matching extra installed and an API key set.
+    """
     dms = _parse_defenses(defenses)
-    summary = run_eval(scenarios, model, dms, out, engine_pref=engine)
+    specs = [s.strip() for s in models.split(",") if s.strip()]
+    if specs:
+        summary = run_models(scenarios, specs, dms, out, engine_pref=engine)
+    else:
+        summary = run_eval(scenarios, model, dms, out, engine_pref=engine)
     console.print(_metrics_table(summary.results))
     console.print(f"wrote [bold]{summary.report_path}[/bold] ({len(summary.results)} runs)")
 

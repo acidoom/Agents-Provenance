@@ -110,6 +110,57 @@ def run_eval(
     return EvalSummary(results=results, out_dir=out, report_path=report_path)
 
 
+def run_models(
+    scenarios_dir: str | Path,
+    model_specs: list[str],
+    defenses: list[DefenseMode],
+    out_dir: str | Path,
+    *,
+    engine_pref: str = "auto",
+    base_dir: str | Path | None = None,
+    db_path=None,
+) -> EvalSummary:
+    """Run the full suite for several models and write a combined comparison report."""
+    base = Path(base_dir) if base_dir else Path.cwd()
+    scenarios = load_scenarios(scenarios_dir)
+    engine = get_policy_engine(engine_pref)
+
+    out = Path(out_dir)
+    traces_dir = out / "traces"
+    traces_dir.mkdir(parents=True, exist_ok=True)
+
+    results: list[EvalResult] = []
+    for spec in model_specs:
+        model = get_model(spec)
+        for scenario in scenarios:
+            for defense in defenses:
+                run = run_one(
+                    scenario, defense, model, policy_engine=engine, base_dir=base, db_path=db_path
+                )
+                trace_path = traces_dir / f"{scenario.id}__{defense.value}__{_slug(spec)}.json"
+                trace_path.write_text(
+                    json.dumps(run.trace, indent=2, default=str), encoding="utf-8"
+                )
+                run.result.trace_path = str(trace_path)
+                results.append(run.result)
+
+    _write_results(out / "results.jsonl", results)
+    _write_summary_csv(out / "summary.csv", results)
+
+    report = generate_report(
+        results,
+        model_profile=", ".join(model_specs),
+        commit=_git_commit(),
+        date=datetime.now(UTC).strftime("%Y-%m-%d"),
+        scenario_count=len(scenarios),
+        policy_engine=engine.name,
+    )
+    report_path = out / "eval_summary.md"
+    report_path.write_text(report, encoding="utf-8")
+
+    return EvalSummary(results=results, out_dir=out, report_path=report_path)
+
+
 def run_single(
     scenario_id: str,
     defense: DefenseMode,
