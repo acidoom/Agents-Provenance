@@ -1,0 +1,12 @@
+# No-local-install path. `docker compose run --rm test` runs the suite (real OPA engine);
+# `docker compose run --rm eval` writes the report to ./reports on the host.
+services:
+  test:
+    build: .
+    command: make test
+
+  eval:
+    build: .
+    command: python -m policy_gated_mcp.cli eval --out reports/weekend_eval
+    volumes:
+      - ./reports:/app/reports

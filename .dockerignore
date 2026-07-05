@@ -1,0 +1,13 @@
+.git
+.venv
+.uv-envs
+bin/opa
+reports/weekend_eval/results.jsonl
+reports/weekend_eval/summary.csv
+reports/weekend_eval/traces
+**/__pycache__
+.pytest_cache
+.ruff_cache
+.mypy_cache
+.claude
+.DS_Store

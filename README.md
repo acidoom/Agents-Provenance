@@ -1,5 +1,10 @@
 # Policy-Gated MCP
 
+[![CI](https://github.com/acidoom/Agents-Provenance/actions/workflows/ci.yml/badge.svg)](https://github.com/acidoom/Agents-Provenance/actions/workflows/ci.yml)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)](pyproject.toml)
+[![OPA / Rego](https://img.shields.io/badge/policy-OPA%20%2F%20Rego-7d4698.svg)](policy/refund.rego)
+
 **Tool-poisoning red-team + provenance/OPA policy defense for MCP-style agents.**
 
 A reproducible, keyless research harness that (1) demonstrates MCP tool-poisoning attacks against a
@@ -35,7 +40,8 @@ arguments yet does *not* stop **canary exfiltration** (100% — the secret leaks
 free-text `reason` field), while spotlighting stops exfiltration (0%) but not description-channel
 hijacking (24% ASR). Only the two together drive both attack surfaces to zero. The false-positive /
 review figures come from the same two benign conflict scenarios (FPR is 2/14 over benign, review is
-2/35 over all). See [reports/eval_summary.md](reports/eval_summary.md).
+2/35 over all). See [reports/eval_summary.md](reports/eval_summary.md), and the
+**[writeup](docs/writeup.md)** for the full method, results, and related work.
 
 ## Architecture
 
@@ -123,6 +129,16 @@ provenance, only the wire between agent and tools changes.
 ```bash
 pip install -e ".[mcp]"
 python -m policy_gated_mcp.cli eval --transport mcp --out reports/mcp_eval   # identical outcomes
+```
+
+## Docker (no local install)
+
+The [Dockerfile](Dockerfile) bundles the `opa` CLI + the harness, so you can run the suite and the
+evaluation against the **real OPA engine** with no local Python/opa/uv:
+
+```bash
+docker compose run --rm test    # run the tests (real OPA/Rego gate)
+docker compose run --rm eval    # write reports/ to the host
 ```
 
 ## Interactive demo
