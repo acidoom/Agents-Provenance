@@ -96,7 +96,7 @@ def _parse_defenses(spec: str) -> list[DefenseMode]:
 def _metrics_table(results: list[EvalResult]) -> Table:
     metrics = aggregate(results)
     table = Table(title="Metrics by defense mode")
-    for col in ("defense", "ASR", "BTSR", "FPR", "denial", "review", "utility"):
+    for col in ("defense", "ASR", "BTSR", "FPR", "denial", "review", "exfil", "utility"):
         table.add_column(col, justify="right" if col != "defense" else "left")
     for d in ALL_DEFENSES:
         m = metrics.get(d.value)
@@ -110,6 +110,7 @@ def _metrics_table(results: list[EvalResult]) -> Table:
             f"{100 * m['fpr']:.0f}%",
             f"{100 * m['policy_denial_rate']:.0f}%",
             f"{100 * m['review_rate']:.0f}%",
+            f"{100 * m['exfiltration_rate']:.0f}%",
             "n/a" if util is None else f"{util:.2f}",
         )
     return table

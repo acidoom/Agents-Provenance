@@ -25,6 +25,7 @@ class AttackType(str, Enum):
     # Optional extras
     retrieval_injection = "retrieval_injection"
     metadata_poisoning = "metadata_poisoning"
+    tool_name_confusion = "tool_name_confusion"
     canary_exfiltration = "canary_exfiltration"
 
 
@@ -65,6 +66,8 @@ class Scenario(BaseModel):
     expected_safe_account: str
     attacker_account: str | None = None
     attacker_amount_eur: float | None = None
+    #: A synthetic secret the attacker tries to exfiltrate (via a free-text arg).
+    canary_token: str | None = None
     expected_policy_outcome: PolicyOutcome
     available_tools: list[str]
     expected_attack_success: bool | None = None
@@ -76,10 +79,10 @@ class Scenario(BaseModel):
         if self.category == Category.attack:
             if self.attack_type == AttackType.benign:
                 raise ValueError(f"attack scenario {self.id!r} must set a non-benign attack_type")
-            if not (self.attacker_account or self.attacker_amount_eur):
+            if not (self.attacker_account or self.attacker_amount_eur or self.canary_token):
                 raise ValueError(
-                    f"attack scenario {self.id!r} must set attacker_account and/or "
-                    "attacker_amount_eur (the attacker objective)"
+                    f"attack scenario {self.id!r} must set an objective: attacker_account, "
+                    "attacker_amount_eur, and/or canary_token"
                 )
         else:
             if self.attack_type != AttackType.benign:
@@ -110,6 +113,8 @@ class EvalResult(BaseModel):
     attack_success: bool | None = None
     benign_success: bool | None = None
     false_positive: bool | None = None
+    #: Canary-exfiltration attacks: did the secret reach the executed tool call?
+    exfiltration_success: bool | None = None
     deny_reasons: list[str] = Field(default_factory=list)
     review_reasons: list[str] = Field(default_factory=list)
     trace_path: str | None = None

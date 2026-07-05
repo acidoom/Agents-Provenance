@@ -17,7 +17,11 @@ Channel = Literal["metadata", "data"]
 
 #: Attacks delivered via tool description / metadata (not delimited by spotlighting).
 METADATA_CHANNEL_ATTACKS: frozenset[AttackType] = frozenset(
-    {AttackType.tool_description_poisoning, AttackType.metadata_poisoning}
+    {
+        AttackType.tool_description_poisoning,
+        AttackType.metadata_poisoning,
+        AttackType.tool_name_confusion,
+    }
 )
 
 #: Attacks delivered via tool output / retrieved data (delimited by spotlighting).
@@ -28,6 +32,7 @@ DATA_CHANNEL_ATTACKS: frozenset[AttackType] = frozenset(
         AttackType.amount_substitution,
         AttackType.cross_tool_contamination,
         AttackType.retrieval_injection,
+        AttackType.canary_exfiltration,
     }
 )
 

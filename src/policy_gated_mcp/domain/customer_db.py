@@ -20,6 +20,8 @@ class CustomerRecord(BaseModel):
     customer_id: str
     verified_account: str
     status: str
+    #: A synthetic secret the agent legitimately holds; canary-exfil attacks try to leak it.
+    internal_ref: str | None = None
 
 
 class CustomerLookup(BaseModel):

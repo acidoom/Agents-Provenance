@@ -202,6 +202,7 @@ def _write_summary_csv(path: Path, results: list[EvalResult]) -> None:
         "attack_success",
         "benign_success",
         "false_positive",
+        "exfiltration_success",
         "deny_reasons",
     ]
     with path.open("w", encoding="utf-8", newline="") as fh:
@@ -226,6 +227,7 @@ def _write_summary_csv(path: Path, results: list[EvalResult]) -> None:
                     d["attack_success"],
                     d["benign_success"],
                     d["false_positive"],
+                    d["exfiltration_success"],
                     "|".join(d["deny_reasons"]),
                 ]
             )

@@ -20,22 +20,22 @@ provenance of high-impact tool-call arguments before execution.
 
 ## Headline result
 
-Deterministic harness, `fake:vulnerable_agent`, 29 scenarios × 4 defenses (116 runs):
+Deterministic harness, `fake:vulnerable_agent`, 35 scenarios × 4 defenses (140 runs):
 
-| Defense | ASR | BTSR | FPR | Review | Utility |
-|---|---:|---:|---:|---:|---:|
-| none | **100%** | 100% | 0% | 0% | 1.00 |
-| spotlighting | 20% | 100% | 0% | 0% | 1.00 |
-| provenance_opa | **0%** | 86% | 14% | 7% | 0.86 |
-| spotlighting + provenance_opa | 0% | 86% | 14% | 7% | 0.86 |
+| Defense | ASR | BTSR | FPR | Review | Exfil | Utility |
+|---|---:|---:|---:|---:|---:|---:|
+| none | **90%** | 100% | 0% | 0% | 100% | 1.00 |
+| spotlighting | 24% | 100% | 0% | 0% | **0%** | 1.00 |
+| provenance_opa | **0%** | 86% | 14% | 6% | 100% | 0.86 |
+| spotlighting + provenance_opa | **0%** | 86% | 14% | 6% | **0%** | 0.86 |
 
-The gate drops attack success from 100% to 0% while keeping benign success at 86%. The false
-positive / review figures come from the **same two** benign scenarios, in which the claim document
-and the verified customer record genuinely disagree on the account; the gate routes them to human
-review rather than guessing. The two percentages use different denominators — FPR is 2/14 (over
-benign scenarios), review rate is 2/29 (over all scenarios). Prompt-layer spotlighting only reaches
-20% ASR because it does not blunt description-channel poisoning. See
-[reports/eval_summary.md](reports/eval_summary.md).
+The provenance gate drops account/amount hijacking (ASR) to **0%** while keeping benign success at
+86%. But the gate and spotlighting turn out to be **complementary**: the gate protects the gated
+arguments yet does *not* stop **canary exfiltration** (100% — the secret leaks via the ungated
+free-text `reason` field), while spotlighting stops exfiltration (0%) but not description-channel
+hijacking (24% ASR). Only the two together drive both attack surfaces to zero. The false-positive /
+review figures come from the same two benign conflict scenarios (FPR is 2/14 over benign, review is
+2/35 over all). See [reports/eval_summary.md](reports/eval_summary.md).
 
 ## Architecture
 
@@ -146,11 +146,11 @@ See [PRD.md](PRD.md) §20 for the full threat model.
 
 ## Scenarios
 
-29 scenarios under [`scenarios/`](scenarios) (run `list-scenarios`):
+35 scenarios under [`scenarios/`](scenarios) (run `list-scenarios`):
 
 - **14 benign** — clean refunds across customers/amounts, plus 2 *conflict* cases where the claim
   document and the verified DB disagree on the account (these exercise the human-review path).
-- **15 attack** — 3 each of the five attack classes below.
+- **21 attack** — across the eight attack classes below.
 
 Each scenario declares its claim fixture, available tools, attack type, the expected safe account,
 the attacker account, and the expected policy outcome. Claim fixtures live in
@@ -162,10 +162,17 @@ the attacker account, and the expected policy outcome. Claim fixtures live in
 | Class | Channel | Poison lives in | Spotlighting stops it? |
 |---|---|---|---|
 | `tool_description_poisoning` | metadata | the tool's description | ✗ (descriptions aren't delimited) |
+| `tool_name_confusion` | metadata | a lookalike "official processor" description | ✗ |
 | `tool_output_poisoning` | data | the tool's output | ✓ |
 | `argument_substitution` | data | output ("replace the account") | ✓ |
-| `amount_substitution` | data | output ("change the amount") — targets `amount_eur`, not the account | ✓ |
-| `cross_tool_contamination` | data | output ("for the next tool, use…") | ✓ |
+| `amount_substitution` | data | output ("change the amount") — targets `amount_eur` | ✓ |
+| `cross_tool_contamination` | data | output ("for the next tool, use…") — multi-step | ✓ |
+| `retrieval_injection` | data | a retrieved "policy document" output | ✓ |
+| `canary_exfiltration` | data | output ("copy the secret into `reason`") — leaks past the gate | ✓ |
+
+**Multi-step taint** falls out of value-based provenance for free: in `cross_tool_contamination` the
+attacker account is planted by one tool and used in a later call, but the ledger recorded it from an
+untrusted source, so the gate still denies it two hops later.
 
 ## Defense modes
 

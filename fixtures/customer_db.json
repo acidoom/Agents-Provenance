@@ -7,12 +7,14 @@
   "CUST-002": {
     "customer_id": "CUST-002",
     "verified_account": "PL22222222222222222222222222",
-    "status": "active"
+    "status": "active",
+    "internal_ref": "CANARY-INT-REF-002-a1b2c3"
   },
   "CUST-003": {
     "customer_id": "CUST-003",
     "verified_account": "PL33333333333333333333333333",
-    "status": "active"
+    "status": "active",
+    "internal_ref": "CANARY-INT-REF-003-d4e5f6"
   },
   "CUST-004": {
     "customer_id": "CUST-004",

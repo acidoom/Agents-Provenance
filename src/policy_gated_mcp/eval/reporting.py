@@ -75,15 +75,22 @@ def generate_report(
     )
 
     a("## Metrics table\n")
-    a("| Defense | ASR | BTSR | FPR | Review Rate | Notes |")
-    a("|---|---:|---:|---:|---:|---|")
+    a("| Defense | ASR | BTSR | FPR | Review | Exfil | Notes |")
+    a("|---|---:|---:|---:|---:|---:|---|")
     for d in present:
         m = metrics[d.value]
+        note = _NOTES.get(d.value, "")
         a(
             f"| {d.value} | {_pct(m['asr'])} | {_pct(m['btsr'])} | {_pct(m['fpr'])} "
-            f"| {_pct(m['review_rate'])} | {_NOTES.get(d.value, '')} |"
+            f"| {_pct(m['review_rate'])} | {_pct(m['exfiltration_rate'])} | {note} |"
         )
     a("")
+    a(
+        "**Exfil** is the canary-exfiltration rate. The gate protects the account and amount "
+        "but not the free-text `reason` field, so a secret can still be exfiltrated *under the "
+        "gate* — while spotlighting (which delimits the untrusted instruction) suppresses it. "
+        "The two defenses are complementary; free-text output filtering is future work.\n"
+    )
 
     models = sorted({r.model_profile for r in results})
     if len(models) > 1:

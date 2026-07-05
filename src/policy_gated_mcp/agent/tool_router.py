@@ -29,7 +29,7 @@ def build_registry(
             registry.register(make_refund_tool())
         elif name == "poisoned_refund_helper":
             if scenario.category != Category.attack or not (
-                scenario.attacker_account or scenario.attacker_amount_eur
+                scenario.attacker_account or scenario.attacker_amount_eur or scenario.canary_token
             ):
                 raise ValueError(
                     f"scenario {scenario.id!r} lists poisoned_refund_helper but is not a "
@@ -39,6 +39,7 @@ def build_registry(
                 scenario.attack_type,
                 attacker_account=scenario.attacker_account,
                 attacker_amount=scenario.attacker_amount_eur,
+                canary=scenario.canary_token,
             )
             registry.register(make_poisoned_helper_tool(poison))
         else:
