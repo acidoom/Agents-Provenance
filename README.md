@@ -43,7 +43,11 @@ review figures come from the same two benign conflict scenarios (FPR is 2/14 ove
 2/35 over all). See [reports/eval_summary.md](reports/eval_summary.md), and the
 **[writeup](docs/writeup.md)** for the full method, results, and related work.
 
+![Attack success rate by defense: none 90%, spotlighting 24%, provenance_opa 0%, spotlighting + provenance_opa 0% — 35 scenarios × 4 defenses, 140 deterministic runs](docs/img/results-by-defense.png)
+
 ## Architecture
+
+![Where the gate sits: agent tools write every observation to a provenance ledger; the OPA gate checks the proposed refund against the ledger and allows, denies, or routes to review](docs/img/architecture.png)
 
 ```mermaid
 flowchart LR
@@ -198,6 +202,8 @@ the attacker account, and the expected policy outcome. Claim fixtures live in
 | `retrieval_injection` | data | a retrieved "policy document" output | ✓ |
 | `canary_exfiltration` | data | output ("copy the secret into `reason`") — leaks past the gate | ✓ |
 
+![Eight attack classes vs the two defenses: spotlighting misses both metadata classes (ASR 24%); the provenance/OPA gate stops all eight (ASR 0%) but alone leaks canary exfiltration through the free-text reason field — run both](docs/img/attack-classes.png)
+
 **Multi-step taint** falls out of value-based provenance for free: in `cross_tool_contamination` the
 attacker account is planted by one tool and used in a later call, but the ledger recorded it from an
 untrusted source, so the gate still denies it two hops later.
@@ -210,6 +216,8 @@ untrusted source, so the gate still denies it two hops later.
 - `spotlighting_plus_provenance_opa` — both.
 
 ## OPA policy
+
+![One deterministic decision, four checks: untrusted origin denies, missing trusted origin denies, trusted-source conflict routes to human review, invalid arguments deny — otherwise allow](docs/img/gate-decision-flow.png)
 
 [`policy/refund.rego`](policy/refund.rego) (Rego v1) authorizes `create_refund_instruction` only when
 its gated arguments (`account_number` and `amount_eur`) each have trusted provenance and no untrusted
