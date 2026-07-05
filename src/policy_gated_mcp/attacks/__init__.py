@@ -4,7 +4,7 @@ from .attack_types import (
     Channel,
     channel_for,
 )
-from .injectors import BENIGN_HELPER_DESCRIPTION, Poison, build_poison
+from .injectors import BENIGN_HELPER_DESCRIPTION, Poison, PoisonTarget, build_poison
 
 __all__ = [
     "Channel",
@@ -12,6 +12,7 @@ __all__ = [
     "METADATA_CHANNEL_ATTACKS",
     "DATA_CHANNEL_ATTACKS",
     "Poison",
+    "PoisonTarget",
     "build_poison",
     "BENIGN_HELPER_DESCRIPTION",
 ]

@@ -154,6 +154,10 @@ with tab_run:
     c2.metric("Executed account", result.executed_account or "— (not executed)")
     outcome = result.policy_outcome.value if result.policy_outcome else "no gate (executes)"
     c3.metric("Policy outcome", outcome)
+    exec_amount = f"€{result.executed_amount}" if result.executed else "— (not executed)"
+    st.markdown(
+        f"**Amount (gated)** — proposed €{result.proposed_amount}, executed {exec_amount}"
+    )
 
     left, right = st.columns(2)
 

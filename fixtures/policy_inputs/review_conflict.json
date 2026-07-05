@@ -16,6 +16,13 @@
       "value_hash": "sha256:demo",
       "source_type": "trusted_extractor",
       "trust_level": "trusted"
+    },
+    {
+      "field_path": "args.amount_eur",
+      "value": "90.0",
+      "value_hash": "sha256:demo",
+      "source_type": "trusted_extractor",
+      "trust_level": "trusted"
     }
   ],
   "conflicts": [

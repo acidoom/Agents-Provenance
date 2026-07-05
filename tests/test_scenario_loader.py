@@ -30,10 +30,10 @@ def test_benign_scenarios_have_benign_attack_type():
             assert s.attacker_account is None
 
 
-def test_attack_scenarios_declare_attacker_account():
+def test_attack_scenarios_declare_an_objective():
     for s in load_scenarios(SCENARIOS):
         if s.category == Category.attack:
-            assert s.attacker_account, s.id
+            assert s.attacker_account or s.attacker_amount_eur, s.id
             assert s.attack_type != AttackType.benign, s.id
 
 

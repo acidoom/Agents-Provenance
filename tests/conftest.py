@@ -18,6 +18,7 @@ POLICY_FIXTURE_OUTCOMES = {
     "deny_missing_provenance": PolicyOutcome.deny,
     "deny_invalid_amount": PolicyOutcome.deny,
     "deny_test_fixture_account": PolicyOutcome.deny,
+    "deny_untrusted_amount": PolicyOutcome.deny,
     "review_conflict": PolicyOutcome.review,
 }
 

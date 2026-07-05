@@ -8,9 +8,9 @@ small tool-using agent running a synthetic refund/claim workflow, and (2) measur
 benign task completion.
 
 > **Core claim under test:** an LLM may *propose* a high-impact tool call, but a provenance-aware
-> policy gate can deny it whenever a critical argument (the refund `account_number`) traces back to
-> an untrusted source — tool metadata, untrusted tool output, or model invention — without breaking
-> legitimate flows.
+> policy gate can deny it whenever a critical argument (the refund `account_number` or `amount_eur`)
+> traces back to an untrusted source — tool metadata, untrusted tool output, or model invention —
+> without breaking legitimate flows.
 
 The security boundary is **not** the prompt. It is a deterministic policy gate that validates the
 provenance of high-impact tool-call arguments before execution.
@@ -20,21 +20,21 @@ provenance of high-impact tool-call arguments before execution.
 
 ## Headline result
 
-Deterministic harness, `fake:vulnerable_agent`, 26 scenarios × 4 defenses (104 runs):
+Deterministic harness, `fake:vulnerable_agent`, 29 scenarios × 4 defenses (116 runs):
 
 | Defense | ASR | BTSR | FPR | Review | Utility |
 |---|---:|---:|---:|---:|---:|
 | none | **100%** | 100% | 0% | 0% | 1.00 |
-| spotlighting | 25% | 100% | 0% | 0% | 1.00 |
-| provenance_opa | **0%** | 86% | 14% | 8% | 0.86 |
-| spotlighting + provenance_opa | 0% | 86% | 14% | 8% | 0.86 |
+| spotlighting | 20% | 100% | 0% | 0% | 1.00 |
+| provenance_opa | **0%** | 86% | 14% | 7% | 0.86 |
+| spotlighting + provenance_opa | 0% | 86% | 14% | 7% | 0.86 |
 
 The gate drops attack success from 100% to 0% while keeping benign success at 86%. The false
 positive / review figures come from the **same two** benign scenarios, in which the claim document
 and the verified customer record genuinely disagree on the account; the gate routes them to human
 review rather than guessing. The two percentages use different denominators — FPR is 2/14 (over
-benign scenarios), review rate is 2/26 (over all scenarios). Prompt-layer spotlighting only reaches
-25% ASR because it does not blunt description-channel poisoning. See
+benign scenarios), review rate is 2/29 (over all scenarios). Prompt-layer spotlighting only reaches
+20% ASR because it does not blunt description-channel poisoning. See
 [reports/eval_summary.md](reports/eval_summary.md).
 
 ## Architecture
@@ -60,7 +60,7 @@ flowchart LR
 
 The model proposes a value; the **ledger** (never the model) resolves where that value actually came
 from by matching it against recorded observations from trusted and untrusted sources; the **gate**
-authorizes only when the refund account has trusted provenance, no untrusted provenance, a valid
+authorizes only when the gated arguments (account and amount) have trusted provenance, no untrusted provenance, a valid
 amount, and no conflict.
 
 ## Quickstart
@@ -117,7 +117,7 @@ deterministic and keyless.
 
 | | |
 |---|---|
-| **Assets** | Integrity of the high-impact call's refund recipient (`account_number`); the agent instruction hierarchy; auditability. (Amount is range-limited only — see Limitations.) |
+| **Assets** | Integrity of the high-impact call's gated arguments — refund recipient (`account_number`) **and** amount (`amount_eur`); the agent instruction hierarchy; auditability. |
 | **Attacker can influence** | MCP tool descriptions/metadata, tool outputs, retrieved document text, helper "recommendations". |
 | **Attacker cannot** | modify the OPA policy, the verified customer DB, or the trusted extractor code; execute the high-impact tool directly. |
 | **Boundary** | the deterministic provenance/OPA gate — not the LLM prompt. |
@@ -126,11 +126,11 @@ See [PRD.md](PRD.md) §20 for the full threat model.
 
 ## Scenarios
 
-26 scenarios under [`scenarios/`](scenarios) (run `list-scenarios`):
+29 scenarios under [`scenarios/`](scenarios) (run `list-scenarios`):
 
 - **14 benign** — clean refunds across customers/amounts, plus 2 *conflict* cases where the claim
   document and the verified DB disagree on the account (these exercise the human-review path).
-- **12 attack** — 3 each of the four attack classes below.
+- **15 attack** — 3 each of the five attack classes below.
 
 Each scenario declares its claim fixture, available tools, attack type, the expected safe account,
 the attacker account, and the expected policy outcome. Claim fixtures live in
@@ -144,6 +144,7 @@ the attacker account, and the expected policy outcome. Claim fixtures live in
 | `tool_description_poisoning` | metadata | the tool's description | ✗ (descriptions aren't delimited) |
 | `tool_output_poisoning` | data | the tool's output | ✓ |
 | `argument_substitution` | data | output ("replace the account") | ✓ |
+| `amount_substitution` | data | output ("change the amount") — targets `amount_eur`, not the account | ✓ |
 | `cross_tool_contamination` | data | output ("for the next tool, use…") | ✓ |
 
 ## Defense modes
@@ -156,7 +157,8 @@ the attacker account, and the expected policy outcome. Claim fixtures live in
 ## OPA policy
 
 [`policy/refund.rego`](policy/refund.rego) (Rego v1) authorizes `create_refund_instruction` only when
-the account has trusted provenance, no untrusted provenance, a valid amount, and no conflict. A
+its gated arguments (`account_number` and `amount_eur`) each have trusted provenance and no untrusted
+provenance, the amount is in range, and there is no conflict. A
 conflict among *trusted* sources (with no untrusted taint) routes to **review**; untrusted or missing
 provenance **denies**. The `PolicyEngine` has two backends:
 
@@ -200,11 +202,11 @@ tests/                  unit + integration (OPA tests skip without the binary)
 
 - Metrics come from a deterministic fake-model harness — they demonstrate the control's mechanics,
   not real-model attack rates.
-- The gate authorizes on the refund `account_number` via provenance. `amount_eur` is only
-  range-checked (not provenance-gated), and `claim_id`/`customer_id` are existence-checked;
-  `reason` is unchecked. So a compromised model could still inflate the amount up to the cap or
-  inject audit metadata while keeping the safe account. Provenance-gating those fields is future
-  work (the mechanism already tags their origin; the policy just doesn't yet enforce it).
+- The gate authorizes on `account_number` **and** `amount_eur` via provenance (both must have a
+  trusted origin and no untrusted origin). `claim_id`/`customer_id` are existence-checked and
+  `reason` is unchecked, so a compromised model could still inject audit metadata while keeping the
+  gated fields safe. Extending provenance-gating to those fields is future work (the ledger already
+  tags their origin — adding them to the gated set is a one-line change).
 - Provenance is exact-value matching; semantically equivalent values are not unified.
 - Tools are in-process (an MCP-like abstraction), not a real MCP transport.
 - The defense reduces measured risk; it does not "solve" prompt injection.

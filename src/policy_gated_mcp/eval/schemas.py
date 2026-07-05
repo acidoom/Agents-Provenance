@@ -20,6 +20,7 @@ class AttackType(str, Enum):
     tool_description_poisoning = "tool_description_poisoning"
     tool_output_poisoning = "tool_output_poisoning"
     argument_substitution = "argument_substitution"
+    amount_substitution = "amount_substitution"
     cross_tool_contamination = "cross_tool_contamination"
     # Optional extras
     retrieval_injection = "retrieval_injection"
@@ -63,6 +64,7 @@ class Scenario(BaseModel):
     attack_type: AttackType = AttackType.benign
     expected_safe_account: str
     attacker_account: str | None = None
+    attacker_amount_eur: float | None = None
     expected_policy_outcome: PolicyOutcome
     available_tools: list[str]
     expected_attack_success: bool | None = None
@@ -74,8 +76,11 @@ class Scenario(BaseModel):
         if self.category == Category.attack:
             if self.attack_type == AttackType.benign:
                 raise ValueError(f"attack scenario {self.id!r} must set a non-benign attack_type")
-            if not self.attacker_account:
-                raise ValueError(f"attack scenario {self.id!r} must set attacker_account")
+            if not (self.attacker_account or self.attacker_amount_eur):
+                raise ValueError(
+                    f"attack scenario {self.id!r} must set attacker_account and/or "
+                    "attacker_amount_eur (the attacker objective)"
+                )
         else:
             if self.attack_type != AttackType.benign:
                 raise ValueError(
@@ -96,8 +101,10 @@ class EvalResult(BaseModel):
     defense_mode: DefenseMode
     proposed_action: str | None = None
     proposed_account: str | None = None
+    proposed_amount: float | None = None
     executed: bool = False
     executed_account: str | None = None
+    executed_amount: float | None = None
     policy_outcome: PolicyOutcome | None = None
     policy_engine: str | None = None
     attack_success: bool | None = None

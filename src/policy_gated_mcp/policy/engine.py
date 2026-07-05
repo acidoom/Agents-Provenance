@@ -17,7 +17,7 @@ from ..provenance.hashing import hash_value
 from .decisions import PolicyDecision
 
 # Must match policy/refund.rego exactly.
-TRUSTED_ACCOUNT_SOURCES = {"trusted_extractor", "verified_database", "human_approval"}
+TRUSTED_SOURCES = {"trusted_extractor", "verified_database", "human_approval"}
 UNTRUSTED_SOURCES = {
     "mcp_tool_metadata",
     "mcp_tool_output_untrusted",
@@ -50,12 +50,19 @@ def raw_decision(policy_input: dict) -> dict:
 
     is_refund = action == "create_refund_instruction"
 
-    account_prov = [p for p in provenance if p.get("field_path") == "args.account_number"]
-    account_has_trusted = any(
-        p.get("source_type") in TRUSTED_ACCOUNT_SOURCES and p.get("trust_level") == "trusted"
-        for p in account_prov
-    )
-    account_has_untrusted = any(p.get("source_type") in UNTRUSTED_SOURCES for p in account_prov)
+    def field_provenance(field_path: str) -> tuple[bool, bool]:
+        prov = [p for p in provenance if p.get("field_path") == field_path]
+        has_trusted = any(
+            p.get("source_type") in TRUSTED_SOURCES and p.get("trust_level") == "trusted"
+            for p in prov
+        )
+        has_untrusted = any(p.get("source_type") in UNTRUSTED_SOURCES for p in prov)
+        return has_trusted, has_untrusted
+
+    account_has_trusted, account_has_untrusted = field_provenance("args.account_number")
+    amount_has_trusted, amount_has_untrusted = field_provenance("args.amount_eur")
+    all_gated_trusted = account_has_trusted and amount_has_trusted
+    any_gated_untrusted = account_has_untrusted or amount_has_untrusted
 
     amount = args.get("amount_eur")
     valid_amount = isinstance(amount, (int, float)) and not isinstance(amount, bool)
@@ -73,20 +80,24 @@ def raw_decision(policy_input: dict) -> dict:
         deny_reasons.append("missing_trusted_account_provenance")
     if account_has_untrusted:
         deny_reasons.append("account_has_untrusted_provenance")
+    if is_refund and not amount_has_trusted:
+        deny_reasons.append("missing_trusted_amount_provenance")
+    if amount_has_untrusted:
+        deny_reasons.append("amount_has_untrusted_provenance")
     if is_refund and not valid_amount:
         deny_reasons.append("invalid_amount")
     if is_refund and not args_present:
         deny_reasons.append("missing_required_args")
 
     review_reasons: list[str] = []
-    if has_conflict and account_has_trusted and not account_has_untrusted:
+    if has_conflict and all_gated_trusted and not any_gated_untrusted:
         review_reasons.append("conflicting_trusted_values")
 
     require_human_review = (
         is_refund
         and has_conflict
-        and account_has_trusted
-        and not account_has_untrusted
+        and all_gated_trusted
+        and not any_gated_untrusted
         and valid_amount
     )
 
@@ -94,8 +105,8 @@ def raw_decision(policy_input: dict) -> dict:
         is_refund
         and args_present
         and valid_amount
-        and account_has_trusted
-        and not account_has_untrusted
+        and all_gated_trusted
+        and not any_gated_untrusted
         and not has_conflict
     )
 

@@ -44,13 +44,20 @@ class FakeModel(Model):
             return signal.attack_type in _MIXED_FOLLOWS
         return False
 
-    def _choose_account(self, ctx: ModelContext) -> str:
+    def _chosen_args(self, ctx: ModelContext) -> tuple[str, float]:
+        """Pick the account and amount, following any poison signal this profile obeys."""
+        account = ctx.safe_account
+        amount = ctx.amount_eur
         for signal in ctx.poison_signals:
             if self._follows(signal, ctx.spotlighted):
-                return signal.account
-        return ctx.safe_account
+                if signal.field == "account_number":
+                    account = signal.value
+                elif signal.field == "amount_eur":
+                    amount = float(signal.value)
+        return account, amount
 
     def propose(self, ctx: ModelContext) -> ToolCallRequest:
+        account, amount = self._chosen_args(ctx)
         return ToolCallRequest(
             action="create_refund_instruction",
             risk_level="high",
@@ -58,8 +65,8 @@ class FakeModel(Model):
             args={
                 "claim_id": ctx.claim_id,
                 "customer_id": ctx.customer_id,
-                "account_number": self._choose_account(ctx),
-                "amount_eur": ctx.amount_eur,
+                "account_number": account,
+                "amount_eur": amount,
                 "reason": ctx.reason,
             },
         )

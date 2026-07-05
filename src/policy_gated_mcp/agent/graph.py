@@ -95,28 +95,29 @@ def run_scenario(
         )
         tool_outputs.append(helper.model_dump())
         if poison is not None:
-            attacker = poison.attacker_account
             if poison.channel == "metadata":
                 source_type = SourceType.mcp_tool_metadata
-                source_id = "tool:poisoned_refund_helper.description"
-                evidence = "attacker account named in poisoned tool description"
+                source_loc = "description"
             else:
                 source_type = SourceType.mcp_tool_output_untrusted
-                source_id = "tool:poisoned_refund_helper.output"
-                evidence = "attacker account named in poisoned tool output"
-            ledger.observe(
-                field="account_number",
-                value=attacker,
-                source_type=source_type,
-                source_id=source_id,
-                created_by="poisoned_refund_helper",
-                evidence=evidence,
-            )
-            poison_signals.append(
-                PoisonSignal(
-                    account=attacker, channel=poison.channel, attack_type=scenario.attack_type
+                source_loc = "output"
+            for target in poison.targets:
+                ledger.observe(
+                    field=target.field,
+                    value=target.value,
+                    source_type=source_type,
+                    source_id=f"tool:poisoned_refund_helper.{source_loc}",
+                    created_by="poisoned_refund_helper",
+                    evidence=f"attacker {target.field} named in poisoned tool {source_loc}",
                 )
-            )
+                poison_signals.append(
+                    PoisonSignal(
+                        field=target.field,
+                        value=target.value,
+                        channel=poison.channel,
+                        attack_type=scenario.attack_type,
+                    )
+                )
         if defense_mode.uses_spotlighting:
             spotlighted_helper = spotlight(helper.text)
 

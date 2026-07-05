@@ -23,8 +23,9 @@ from .models import (
     TrustLevel,
 )
 
-#: The single field the refund policy authorizes on. Others are existence/range checked.
-GATED_FIELD = "account_number"
+#: The fields the refund policy authorizes on (trusted provenance required, untrusted
+#: denied). Others are existence/range checked. Must match refund.rego / engine.py.
+GATED_FIELDS: tuple[str, ...] = ("account_number", "amount_eur")
 
 #: Preference order when several trusted sources vouch for the same value.
 _TRUSTED_PRIORITY = {
@@ -192,8 +193,9 @@ class ProvenanceLedger:
                     provenance.append(self._entry_to_input(entry))
 
         conflicts: list[dict] = []
-        if GATED_FIELD in args:
-            conflicts = self.conflicts_for(GATED_FIELD, args[GATED_FIELD])
+        for field in GATED_FIELDS:
+            if field in args:
+                conflicts.extend(self.conflicts_for(field, args[field]))
 
         return {
             "action": action,

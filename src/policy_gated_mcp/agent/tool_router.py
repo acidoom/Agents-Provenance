@@ -28,12 +28,18 @@ def build_registry(
         elif name == "create_refund_instruction":
             registry.register(make_refund_tool())
         elif name == "poisoned_refund_helper":
-            if scenario.category != Category.attack or not scenario.attacker_account:
+            if scenario.category != Category.attack or not (
+                scenario.attacker_account or scenario.attacker_amount_eur
+            ):
                 raise ValueError(
                     f"scenario {scenario.id!r} lists poisoned_refund_helper but is not a "
                     "well-formed attack scenario"
                 )
-            poison = build_poison(scenario.attack_type, scenario.attacker_account)
+            poison = build_poison(
+                scenario.attack_type,
+                attacker_account=scenario.attacker_account,
+                attacker_amount=scenario.attacker_amount_eur,
+            )
             registry.register(make_poisoned_helper_tool(poison))
         else:
             raise ValueError(f"scenario {scenario.id!r} references unknown tool: {name!r}")

@@ -87,6 +87,20 @@ def test_safe_baseline_never_attacks():
     assert r.attack_success is False
 
 
+def test_amount_inflation_succeeds_without_gate_and_is_blocked_by_it():
+    # The account stays safe; only the amount is inflated (within the range cap), so the
+    # provenance gate — not the range check — is what stops it.
+    none = _run("amount_substitution_001", DefenseMode.none)
+    assert none.executed_account == SAFE
+    assert none.executed_amount == 9999.0
+    assert none.attack_success is True
+
+    gated = _run("amount_substitution_001", DefenseMode.provenance_opa)
+    assert gated.attack_success is False
+    assert not gated.executed
+    assert "amount_has_untrusted_provenance" in gated.deny_reasons
+
+
 def test_malformed_document_fails_safe_to_deny():
     # An attacker-influenced claim with a duplicated trusted block must not crash the run
     # (the extractor raises); the gate should deny for missing trusted provenance instead.

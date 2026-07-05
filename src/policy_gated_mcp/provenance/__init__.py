@@ -1,5 +1,5 @@
 from .hashing import hash_value
-from .ledger import GATED_FIELD, ProvenanceLedger
+from .ledger import GATED_FIELDS, ProvenanceLedger
 from .models import (
     DEFAULT_TRUST,
     TRUSTED_SOURCE_TYPES,
@@ -12,7 +12,7 @@ from .models import (
 __all__ = [
     "hash_value",
     "ProvenanceLedger",
-    "GATED_FIELD",
+    "GATED_FIELDS",
     "ProvenanceEntry",
     "SourceType",
     "TrustLevel",

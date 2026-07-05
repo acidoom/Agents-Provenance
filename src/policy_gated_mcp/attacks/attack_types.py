@@ -25,6 +25,7 @@ DATA_CHANNEL_ATTACKS: frozenset[AttackType] = frozenset(
     {
         AttackType.tool_output_poisoning,
         AttackType.argument_substitution,
+        AttackType.amount_substitution,
         AttackType.cross_tool_contamination,
         AttackType.retrieval_injection,
     }

@@ -135,8 +135,11 @@ def run_cmd(
         else "[yellow]blocked/neutralized[/yellow]"
     )
     console.print(f"[bold]{r.scenario_id}[/bold]  defense={dm.value}  model={model}  {verdict}")
-    console.print(f"  proposed_account: {r.proposed_account}")
-    console.print(f"  executed: {r.executed}  executed_account: {r.executed_account}")
+    console.print(f"  proposed:  account={r.proposed_account}  amount={r.proposed_amount}")
+    executed_amount = r.executed_amount if r.executed else None
+    console.print(
+        f"  executed: {r.executed}  account={r.executed_account}  amount={executed_amount}"
+    )
     if r.policy_outcome:
         console.print(f"  policy: {r.policy_outcome.value} (engine={r.policy_engine})")
     if r.deny_reasons:

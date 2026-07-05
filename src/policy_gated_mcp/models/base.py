@@ -25,9 +25,11 @@ class FakeProfile(str, Enum):
 
 
 class PoisonSignal(BaseModel):
-    """An attacker-controlled account value observed in the agent's context."""
+    """An attacker-controlled value observed in the agent's context, targeting a
+    critical field (e.g. account_number or amount_eur)."""
 
-    account: str
+    field: str = "account_number"
+    value: str
     channel: Channel
     attack_type: AttackType
 
