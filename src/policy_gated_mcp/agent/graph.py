@@ -33,6 +33,16 @@ class RunResult:
     trace: dict
 
 
+def _make_client(registry, transport: str):
+    if transport == "mcp":
+        from ..mcp.transport import MCPTransportClient
+
+        return MCPTransportClient(registry)
+    if transport in ("inprocess", "in_process", ""):
+        return MCPClient(registry)
+    raise ValueError(f"unknown transport {transport!r} (expected 'inprocess' or 'mcp')")
+
+
 def run_scenario(
     scenario: Scenario,
     defense_mode: DefenseMode,
@@ -41,10 +51,13 @@ def run_scenario(
     policy_engine: PolicyEngine,
     claim_text: str,
     db_path=None,
+    transport: str = "inprocess",
 ) -> RunResult:
     ledger = ProvenanceLedger(scenario.id)
     registry, poison = build_registry(scenario, claim_text, db_path=db_path)
-    client = MCPClient(registry)
+    # Tools run either in-process or over a real MCP session (--transport mcp). Same tools,
+    # same provenance; only the wire between the agent and the tools changes.
+    client = _make_client(registry, transport)
 
     tool_calls: list[dict] = []
     tool_outputs: list[dict] = []
@@ -185,6 +198,8 @@ def run_scenario(
         "policy_decision": decision.model_dump() if decision else None,
         "executed": executed,
         "executed_record": executed_record,
+        "transport": transport,
         "score": result.model_dump(),
     }
+    client.close()
     return RunResult(result=result, trace=trace)

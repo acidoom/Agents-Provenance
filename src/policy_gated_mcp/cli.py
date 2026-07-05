@@ -123,10 +123,13 @@ def run_cmd(
     model: str = typer.Option("fake:vulnerable_agent", "--model"),
     scenarios: Path = ScenariosOption,
     engine: str = typer.Option("auto", "--engine", help="auto | opa | native"),
+    transport: str = typer.Option("inprocess", "--transport", help="inprocess | mcp"),
 ) -> None:
     """Run a single scenario under one defense mode and print the outcome."""
     dm = _parse_defenses(defense)[0]
-    outcome = run_single(scenario, dm, model, scenarios_dir=scenarios, engine_pref=engine)
+    outcome = run_single(
+        scenario, dm, model, scenarios_dir=scenarios, engine_pref=engine, transport=transport
+    )
     r = outcome.result
     verdict = (
         "[red]ATTACK SUCCEEDED[/red]"
@@ -159,18 +162,20 @@ def eval_cmd(
     defenses: str = typer.Option("all", "--defenses", help="'all' or comma-separated modes"),
     out: Path = typer.Option(Path("reports/weekend_eval"), "--out"),
     engine: str = typer.Option("auto", "--engine"),
+    transport: str = typer.Option("inprocess", "--transport", help="inprocess | mcp"),
 ) -> None:
     """Run the full evaluation suite and write results, CSV, traces, and a report.
 
     Use --models to compare several models (e.g. fake:vulnerable_agent,anthropic:claude-...);
-    real models need the matching extra installed and an API key set.
+    real models need the matching extra installed and an API key set. Use --transport mcp to
+    run tools over a real MCP session (needs the `mcp` extra).
     """
     dms = _parse_defenses(defenses)
     specs = [s.strip() for s in models.split(",") if s.strip()]
     if specs:
-        summary = run_models(scenarios, specs, dms, out, engine_pref=engine)
+        summary = run_models(scenarios, specs, dms, out, engine_pref=engine, transport=transport)
     else:
-        summary = run_eval(scenarios, model, dms, out, engine_pref=engine)
+        summary = run_eval(scenarios, model, dms, out, engine_pref=engine, transport=transport)
     console.print(_metrics_table(summary.results))
     console.print(f"wrote [bold]{summary.report_path}[/bold] ({len(summary.results)} runs)")
 

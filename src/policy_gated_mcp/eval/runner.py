@@ -51,6 +51,7 @@ def run_one(
     policy_engine,
     base_dir: Path,
     db_path=None,
+    transport: str = "inprocess",
 ) -> RunResult:
     claim_text = _resolve_claim(base_dir, scenario)
     return run_scenario(
@@ -60,6 +61,7 @@ def run_one(
         policy_engine=policy_engine,
         claim_text=claim_text,
         db_path=db_path,
+        transport=transport,
     )
 
 
@@ -72,6 +74,7 @@ def run_eval(
     engine_pref: str = "auto",
     base_dir: str | Path | None = None,
     db_path=None,
+    transport: str = "inprocess",
 ) -> EvalSummary:
     base = Path(base_dir) if base_dir else Path.cwd()
     scenarios = load_scenarios(scenarios_dir)
@@ -86,7 +89,13 @@ def run_eval(
     for scenario in scenarios:
         for defense in defenses:
             run = run_one(
-                scenario, defense, model, policy_engine=engine, base_dir=base, db_path=db_path
+                scenario,
+                defense,
+                model,
+                policy_engine=engine,
+                base_dir=base,
+                db_path=db_path,
+                transport=transport,
             )
             trace_path = traces_dir / f"{scenario.id}__{defense.value}__{_slug(model_spec)}.json"
             trace_path.write_text(json.dumps(run.trace, indent=2, default=str), encoding="utf-8")
@@ -119,6 +128,7 @@ def run_models(
     engine_pref: str = "auto",
     base_dir: str | Path | None = None,
     db_path=None,
+    transport: str = "inprocess",
 ) -> EvalSummary:
     """Run the full suite for several models and write a combined comparison report."""
     base = Path(base_dir) if base_dir else Path.cwd()
@@ -135,7 +145,13 @@ def run_models(
         for scenario in scenarios:
             for defense in defenses:
                 run = run_one(
-                    scenario, defense, model, policy_engine=engine, base_dir=base, db_path=db_path
+                    scenario,
+                    defense,
+                    model,
+                    policy_engine=engine,
+                    base_dir=base,
+                    db_path=db_path,
+                    transport=transport,
                 )
                 trace_path = traces_dir / f"{scenario.id}__{defense.value}__{_slug(spec)}.json"
                 trace_path.write_text(
@@ -170,13 +186,22 @@ def run_single(
     engine_pref: str = "auto",
     base_dir: str | Path | None = None,
     db_path=None,
+    transport: str = "inprocess",
 ) -> RunResult:
     """Run one scenario under one defense (for the `run` CLI command)."""
     base = Path(base_dir) if base_dir else Path.cwd()
     scenario = get_scenario(scenarios_dir, scenario_id)
     model = get_model(model_spec)
     engine = get_policy_engine(engine_pref)
-    return run_one(scenario, defense, model, policy_engine=engine, base_dir=base, db_path=db_path)
+    return run_one(
+        scenario,
+        defense,
+        model,
+        policy_engine=engine,
+        base_dir=base,
+        db_path=db_path,
+        transport=transport,
+    )
 
 
 def _write_results(path: Path, results: list[EvalResult]) -> None:

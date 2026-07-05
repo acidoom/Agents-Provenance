@@ -113,6 +113,18 @@ The report gains a **Model comparison (ASR by defense)** table. Set
 `POLICY_GATED_MCP_MODEL_CACHE=.cache` to cache responses for reproducible, cheap re-runs. The
 keyless default path (`make test` / `make eval`, CI) never touches these adapters.
 
+## Real MCP transport (optional)
+
+By default the tools run in-process (an MCP-like abstraction). With `pip install -e ".[mcp]"`,
+`--transport mcp` runs them over a **real MCP session** (the official SDK's in-memory client/server
+— real protocol, tool listing, and serialization, no flaky subprocess): the *same* tools, the *same*
+provenance, only the wire between agent and tools changes.
+
+```bash
+pip install -e ".[mcp]"
+python -m policy_gated_mcp.cli eval --transport mcp --out reports/mcp_eval   # identical outcomes
+```
+
 ## Interactive demo
 
 An optional Streamlit app ([demo/app.py](demo/app.py)) makes the thesis clickable — pick a
@@ -240,10 +252,10 @@ tests/                  unit + integration (OPA tests skip without the binary)
 
 ## Future work
 
-A real `mcp`-SDK server/client transport (attacks over the actual protocol); more attack classes
-(retrieval injection, tool-name confusion, canary exfiltration); signed tool manifests /
-allow-listing; multi-step taint tracking; a CI regression benchmark. (Real-model adapters and
-multi-field gating are now implemented — see above.)
+Free-text **output filtering** to close the canary-exfiltration gap; signed tool manifests /
+allow-listing; provenance-gating the remaining args (`reason`, `claim_id`); a CI regression
+benchmark; broader real-model comparisons. (Real-model adapters, multi-field gating, five new
+attack classes, and a real `mcp`-SDK transport are now implemented — see above.)
 
 ## License
 

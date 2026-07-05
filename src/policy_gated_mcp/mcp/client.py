@@ -18,3 +18,6 @@ class MCPClient:
 
     def call(self, name: str, **kwargs) -> ToolResult:
         return self.registry.get(name).run(**kwargs)
+
+    def close(self) -> None:  # symmetry with MCPTransportClient; nothing to tear down
+        pass
